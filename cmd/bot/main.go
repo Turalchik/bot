@@ -12,7 +12,7 @@ func main() {
 	godotenv.Load()
 	token := os.Getenv("TOKEN")
 
-	bot, err := tgbotapi.NewBotAPI("7963940398:AAFIWQvzKU267bPF-4skc13zmYAstx4UoxY")
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -28,11 +28,21 @@ func main() {
 
 	for update := range updates {
 		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-
-			bot.Send(msg)
+			switch update.Message.Command() {
+			case "help":
+				helpMessage(bot, update.Message)
+			default:
+				defaultBehavior(bot, update.Message)
+			}
 		}
 	}
+}
+
+func helpMessage(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Помогите!!!")
+	bot.Send(msg)
+}
+func defaultBehavior(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "You wrote"+inputMessage.Text)
+	bot.Send(msg)
 }
