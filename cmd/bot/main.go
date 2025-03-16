@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Turalchik/bot/internal/service/product"
 	"log"
 	"os"
 
@@ -26,11 +27,15 @@ func main() {
 
 	updates := bot.GetUpdatesChan(u)
 
+	productService := product.NewService()
+
 	for update := range updates {
 		if update.Message != nil { // If we got a message
 			switch update.Message.Command() {
 			case "help":
 				helpMessage(bot, update.Message)
+			case "list":
+				listMessage(bot, update.Message, productService)
 			default:
 				defaultBehavior(bot, update.Message)
 			}
@@ -42,7 +47,17 @@ func helpMessage(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
 	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Помогите!!!")
 	bot.Send(msg)
 }
+func listMessage(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message, productService *product.Service) {
+	outMsgTxt := "Вот вам лист товаров\n\n"
+
+	for _, prod := range productService.List() {
+		outMsgTxt += prod.Title + "\n"
+	}
+
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, outMsgTxt)
+	bot.Send(msg)
+}
 func defaultBehavior(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "You wrote"+inputMessage.Text)
+	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "You wrote: "+inputMessage.Text)
 	bot.Send(msg)
 }
