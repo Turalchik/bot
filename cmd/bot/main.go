@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Turalchik/bot/internal/app/commands"
 	"github.com/Turalchik/bot/internal/service/product"
 	"log"
 	"os"
@@ -27,37 +28,18 @@ func main() {
 
 	updates := bot.GetUpdatesChan(u)
 
-	productService := product.NewService()
+	commander := commands.NewCommander(bot, product.NewService())
 
 	for update := range updates {
 		if update.Message != nil { // If we got a message
 			switch update.Message.Command() {
 			case "help":
-				helpMessage(bot, update.Message)
+				commander.Help(update.Message)
 			case "list":
-				listMessage(bot, update.Message, productService)
+				commander.List(update.Message)
 			default:
-				defaultBehavior(bot, update.Message)
+				commander.Default(update.Message)
 			}
 		}
 	}
-}
-
-func helpMessage(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Помогите!!!")
-	bot.Send(msg)
-}
-func listMessage(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message, productService *product.Service) {
-	outMsgTxt := "Вот вам лист товаров\n\n"
-
-	for _, prod := range productService.List() {
-		outMsgTxt += prod.Title + "\n"
-	}
-
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, outMsgTxt)
-	bot.Send(msg)
-}
-func defaultBehavior(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "You wrote: "+inputMessage.Text)
-	bot.Send(msg)
 }
