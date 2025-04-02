@@ -11,11 +11,15 @@ type InvoiceService interface {
 }
 
 type DummyInvoiceService struct {
-	ID2Invoice map[uint64]*payment.Invoice
+	Invoices         []payment.Invoice
+	FreeID           uint64
+	ID2InvoicesIndex map[uint64]uint64
+	Size             uint64
 }
 
 func NewDummyInvoiceService() *DummyInvoiceService {
 	return &DummyInvoiceService{
-		ID2Invoice: make(map[uint64]*payment.Invoice),
+		FreeID:           1,
+		ID2InvoicesIndex: make(map[uint64]uint64),
 	}
 }
