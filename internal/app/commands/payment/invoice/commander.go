@@ -1,7 +1,7 @@
 package invoice
 
 import (
-	model "github.com/Turalchik/bot/internal/model/payment"
+	//model "github.com/Turalchik/bot/internal/model/payment"
 	service "github.com/Turalchik/bot/internal/service/payment/invoice"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -18,12 +18,12 @@ type InvoiceCommander interface {
 
 type DummyInvoiceCommander struct {
 	bot            *tgbotapi.BotAPI
-	invoiceService *service.InvoiceService
+	invoiceService service.InvoiceService
 }
 
 func NewInvoiceCommander(bot *tgbotapi.BotAPI, service service.InvoiceService) InvoiceCommander {
-	return DummyInvoiceCommander{
+	return &DummyInvoiceCommander{
 		bot:            bot,
-		invoiceService: &service,
+		invoiceService: service,
 	}
 }
