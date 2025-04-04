@@ -7,7 +7,12 @@ func (invoiceCommander *DummyInvoiceCommander) HandleUpdate(update *tgbotapi.Upd
 		invoiceCommander.handleCallbackQuery(update.CallbackQuery)
 		return
 	}
+
 	if update.Message != nil {
+		if invoiceCommander.lastKeyboardMessageID >= 0 {
+			invoiceCommander.deleteKeyboard(update.Message.Chat.ID, update.Message.MessageID)
+			invoiceCommander.lastKeyboardMessageID = -1
+		}
 		invoiceCommander.handleMessage(update.Message)
 		return
 	}

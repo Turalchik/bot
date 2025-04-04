@@ -40,5 +40,6 @@ func (invoiceCommander *DummyInvoiceCommander) List(inputMsg *tgbotapi.Message) 
 		),
 	)
 
-	invoiceCommander.bot.Send(outMsg)
+	sentMsg, _ := invoiceCommander.bot.Send(outMsg)
+	invoiceCommander.lastKeyboardMessageID = sentMsg.MessageID
 }
