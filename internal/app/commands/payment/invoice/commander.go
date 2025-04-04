@@ -19,6 +19,8 @@ type InvoiceCommander interface {
 type DummyInvoiceCommander struct {
 	bot            *tgbotapi.BotAPI
 	invoiceService service.InvoiceService
+	cursor         uint64
+	limit          uint64
 }
 
 func NewInvoiceCommander(bot *tgbotapi.BotAPI, service service.InvoiceService) InvoiceCommander {

@@ -8,6 +8,7 @@ type InvoiceService interface {
 	Create(payment.Invoice) (uint64, error)
 	Update(invoiceID uint64, invoice payment.Invoice) error
 	Remove(invoiceID uint64) (bool, error)
+	GetSize() uint64
 }
 
 type DummyInvoiceService struct {
