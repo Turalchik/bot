@@ -48,7 +48,7 @@ func firstRowForKeyboardMarkup(cursor uint64, limit uint64, numberInvoices uint6
 func arrOfInvoices2Txt(arrOfInvoices []payment.Invoice) string {
 	var outTxt string
 	for _, invoice := range arrOfInvoices {
-		outTxt += fmt.Sprintf("%s %.2f %s\n", invoice.Number, invoice.Amount, invoice.Currency)
+		outTxt += fmt.Sprintf("%v %s %.2f %s\n", invoice.ID, invoice.Number, invoice.Amount, invoice.Currency)
 	}
 	return outTxt
 }

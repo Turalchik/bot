@@ -12,6 +12,7 @@ func (invoiceService *DummyInvoiceService) Create(invoice payment.Invoice) (uint
 
 	invoiceService.ID2InvoicesIndex[invoiceService.FreeID] = invoiceService.Size
 	invoiceService.Invoices = append(invoiceService.Invoices, invoice)
+	invoiceService.Invoices[invoiceService.Size].ID = invoiceService.FreeID
 	invoiceService.Size++
 	invoiceService.FreeID++
 

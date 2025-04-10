@@ -11,5 +11,6 @@ func (invoiceService *DummyInvoiceService) Update(invoiceID uint64, invoice paym
 		return fmt.Errorf("non-existent ID")
 	}
 	invoiceService.Invoices[invoicesIndex] = invoice
+	invoiceService.Invoices[invoicesIndex].ID = invoiceID
 	return nil
 }
