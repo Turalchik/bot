@@ -26,22 +26,22 @@ type consumer struct {
 }
 
 type Config struct {
-	numberConsumers uint64
-	events          chan<- payment.InvoiceEvent
-	repo            repo.EventRepo
-	batchSize       uint64
-	timeout         time.Duration
+	NumberConsumers uint64
+	Events          chan<- payment.InvoiceEvent
+	Repo            repo.EventRepo
+	BatchSize       uint64
+	Timeout         time.Duration
 }
 
-func NewConsumer(cfg *Config) Consumer {
+func NewConsumer(cfg Config) Consumer {
 	return &consumer{
-		numberConsumers: cfg.numberConsumers,
-		events:          cfg.events,
+		numberConsumers: cfg.NumberConsumers,
+		events:          cfg.Events,
 
-		repo: cfg.repo,
+		repo: cfg.Repo,
 
-		batchSize: cfg.batchSize,
-		timeout:   cfg.timeout,
+		batchSize: cfg.BatchSize,
+		timeout:   cfg.Timeout,
 
 		done: make(chan interface{}),
 		wg:   &sync.WaitGroup{},

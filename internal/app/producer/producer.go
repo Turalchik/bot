@@ -31,26 +31,26 @@ type producer struct {
 }
 
 type Config struct {
-	numberProducers uint64
-	timeout         time.Duration
-	bufferSize      uint64
-	repo            repo.EventRepo
-	sender          sender.EventSender
-	events          <-chan payment.InvoiceEvent
-	workerPool      *workerpool.WorkerPool
+	NumberProducers uint64
+	Timeout         time.Duration
+	BufferSize      uint64
+	Repo            repo.EventRepo
+	Sender          sender.EventSender
+	Events          <-chan payment.InvoiceEvent
+	WorkerPool      *workerpool.WorkerPool
 }
 
-func NewProducer(cfg *Config) Producer {
+func NewProducer(cfg Config) Producer {
 	return &producer{
-		numberProducers: cfg.numberProducers,
-		timeout:         cfg.timeout,
-		bufferSize:      cfg.bufferSize,
+		numberProducers: cfg.NumberProducers,
+		timeout:         cfg.Timeout,
+		bufferSize:      cfg.BufferSize,
 
-		repo:   cfg.repo,
-		sender: cfg.sender,
-		events: cfg.events,
+		repo:   cfg.Repo,
+		sender: cfg.Sender,
+		events: cfg.Events,
 
-		workerPool: cfg.workerPool,
+		workerPool: cfg.WorkerPool,
 
 		IDCreatedInvoices: make(map[uint64]interface{}),
 		wg:                &sync.WaitGroup{},
