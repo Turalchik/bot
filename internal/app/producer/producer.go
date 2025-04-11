@@ -17,6 +17,7 @@ type Producer interface {
 type producer struct {
 	numberProducers uint64
 	timeout         time.Duration
+	bufferSize      uint64
 
 	repo   repo.EventRepo
 	sender sender.EventSender
@@ -32,6 +33,7 @@ type producer struct {
 type Config struct {
 	numberProducers uint64
 	timeout         time.Duration
+	bufferSize      uint64
 	repo            repo.EventRepo
 	sender          sender.EventSender
 	events          <-chan payment.InvoiceEvent
@@ -42,6 +44,7 @@ func NewProducer(cfg *Config) Producer {
 	return &producer{
 		numberProducers: cfg.numberProducers,
 		timeout:         cfg.timeout,
+		bufferSize:      cfg.bufferSize,
 
 		repo:   cfg.repo,
 		sender: cfg.sender,
@@ -56,8 +59,9 @@ func NewProducer(cfg *Config) Producer {
 }
 
 func (prod *producer) Start() {
-	unlockedEventIDs := make([]uint64, 0)
-	removedEventIDs := make([]uint64, 0)
+	chanUnlockedEventIDs := make(chan payment.InvoiceEvent, prod.bufferSize)
+	chanRemovedEventIDs := make(chan payment.InvoiceEvent, prod.bufferSize)
+
 	mu := sync.Mutex{}
 
 	for i := uint64(0); i < prod.numberProducers; i++ {
@@ -70,59 +74,53 @@ func (prod *producer) Start() {
 			for {
 				select {
 				case event := <-prod.events:
+					mu.Lock()
 					_, ok := prod.IDCreatedInvoices[event.Entity.ID]
-					if ok && event.Type == payment.Created {
-						mu.Lock()
-						unlockedEventIDs = append(unlockedEventIDs, event.ID)
-						mu.Unlock()
-						continue
-					}
-					if !ok && (event.Type == payment.Updated || event.Type == payment.Removed) {
-						mu.Lock()
-						unlockedEventIDs = append(unlockedEventIDs, event.ID)
-						mu.Unlock()
+					mu.Unlock()
+
+					if ok && event.Type == payment.Created || !ok && (event.Type == payment.Updated || event.Type == payment.Removed) {
+						chanUnlockedEventIDs <- event
 						continue
 					}
 
 					if err := prod.sender.Send(&event); err != nil {
-						mu.Lock()
-						unlockedEventIDs = append(unlockedEventIDs, event.ID)
-						mu.Lock()
+						chanUnlockedEventIDs <- event
 						continue
 					}
 
-					mu.Lock()
-					removedEventIDs = append(removedEventIDs, event.ID)
-					mu.Unlock()
+					chanRemovedEventIDs <- event
 
-					if event.Type == payment.Created {
-						mu.Lock()
-						prod.IDCreatedInvoices[event.Entity.ID] = struct{}{}
-						mu.Unlock()
-					} else if event.Type == payment.Removed {
-						mu.Lock()
-						delete(prod.IDCreatedInvoices, event.Entity.ID)
-						mu.Unlock()
-					}
 				case <-ticker.C:
-					mu.Lock()
-					if len(unlockedEventIDs) > 0 {
+					_, sliceUnlockedIDs := chanInvoiceEvents2SliceInvoiceEventsANDIDs(chanUnlockedEventIDs)
+					if len(sliceUnlockedIDs) > 0 {
 						prod.workerPool.Submit(func() {
-							if err := prod.repo.Unlock(unlockedEventIDs); err == nil {
-								unlockedEventIDs = unlockedEventIDs[:0]
+							if err := prod.repo.Unlock(sliceUnlockedIDs); err != nil {
+								for _, id := range sliceUnlockedIDs {
+									chanUnlockedEventIDs <- payment.InvoiceEvent{ID: id}
+								}
 							}
 						})
 					}
-					mu.Unlock()
-					mu.Lock()
-					if len(removedEventIDs) > 0 {
+					sliceRemovedEvents, sliceRemovedIDs := chanInvoiceEvents2SliceInvoiceEventsANDIDs(chanRemovedEventIDs)
+					if len(sliceRemovedIDs) > 0 {
 						prod.workerPool.Submit(func() {
-							if err := prod.repo.Remove(removedEventIDs); err == nil {
-								removedEventIDs = removedEventIDs[:0]
+							if err := prod.repo.Remove(sliceRemovedIDs); err != nil {
+								for _, event := range sliceRemovedEvents {
+									chanRemovedEventIDs <- event
+								}
+							} else {
+								mu.Lock()
+								for _, event := range sliceRemovedEvents {
+									if event.Type == payment.Created {
+										prod.IDCreatedInvoices[event.Entity.ID] = struct{}{}
+									} else if event.Type == payment.Removed {
+										delete(prod.IDCreatedInvoices, event.Entity.ID)
+									}
+								}
+								mu.Unlock()
 							}
 						})
 					}
-					mu.Unlock()
 				case <-prod.done:
 					return
 				}
