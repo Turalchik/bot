@@ -2,7 +2,7 @@ package invoice
 
 import (
 	"fmt"
-	"github.com/Turalchik/bot/internal/model/payment"
+	"github.com/Turalchik/bot/task-1/internal/model/payment"
 )
 
 func (invoiceService *DummyInvoiceService) Update(invoiceID uint64, invoice payment.Invoice) error {

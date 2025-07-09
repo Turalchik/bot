@@ -2,7 +2,7 @@ package invoice
 
 import (
 	"fmt"
-	"github.com/Turalchik/bot/internal/model/payment"
+	"github.com/Turalchik/bot/task-1/internal/model/payment"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"strconv"
 )

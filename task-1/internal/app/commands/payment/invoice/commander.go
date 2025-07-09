@@ -1,7 +1,7 @@
 package invoice
 
 import (
-	service "github.com/Turalchik/bot/internal/service/payment/invoice"
+	service "github.com/Turalchik/bot/task-1/internal/service/payment/invoice"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

@@ -1,6 +1,8 @@
 package invoice
 
-import "github.com/Turalchik/bot/internal/model/payment"
+import (
+	"github.com/Turalchik/bot/task-1/internal/model/payment"
+)
 
 type InvoiceService interface {
 	Describe(invoiceID uint64) (*payment.Invoice, error)
